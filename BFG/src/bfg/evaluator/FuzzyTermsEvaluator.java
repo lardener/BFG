@@ -108,11 +108,7 @@ public class FuzzyTermsEvaluator implements Evaluator {
 		log.trace(query.rewrite(searcher.getIndexReader()).toString());
 	    }
 	    TopDocs results = searcher.search(query, 5);
-	    if (ScoringCriteria.BEST_SCORE.equals(scoringCriteria)) {
-		score = results.getMaxScore();
-	    } else {
-		score = results.totalHits;
-	    }
+	    score = getScore(results, scoringCriteria);
 	} catch (IOException e) {
 	    log.error("Could not read index {}", str, e);
 	    throw new RuntimeException(e);
@@ -138,11 +134,7 @@ public class FuzzyTermsEvaluator implements Evaluator {
 		log.trace(query.toString());
 	    }
 	    TopDocs results = searcher.search(query, 5);
-	    if (ScoringCriteria.BEST_SCORE.equals(scoringCriteria)) {
-		score = results.getMaxScore();
-	    } else {
-		score = results.totalHits;
-	    }
+	    score = getScore(results, scoringCriteria);
 	} catch (ParseException e) {
 	    log.error("Could not parse {}", str, e);
 	    throw new RuntimeException(e);
@@ -161,8 +153,8 @@ public class FuzzyTermsEvaluator implements Evaluator {
 	ArrayList<SpanMultiTermQueryWrapper<FuzzyQuery>> queryTerms = new ArrayList<>();
 	while (m.find()) {
 	    String word = m.group();
-	    queryTerms.add(new SpanMultiTermQueryWrapper<FuzzyQuery>(
-		    new FuzzyQuery(new Term("contents", word + "~" + maxDistance))));
+	    queryTerms.add(
+		    new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term("contents", word + "~" + maxDistance))));
 	}
 	try {
 	    // Query query = new SpanNearQuery(queryTerms.toArray(new
@@ -172,11 +164,7 @@ public class FuzzyTermsEvaluator implements Evaluator {
 		log.trace(query.rewrite(searcher.getIndexReader()).toString());
 	    }
 	    TopDocs results = searcher.search(query, 5);
-	    if (ScoringCriteria.BEST_SCORE.equals(scoringCriteria)) {
-		score = results.getMaxScore();
-	    } else {
-		score = results.totalHits;
-	    }
+	    score = getScore(results, scoringCriteria);
 	} catch (IOException e) {
 	    log.error("Could not read index {}", str, e);
 	    throw new RuntimeException(e);

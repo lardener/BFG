@@ -63,7 +63,7 @@ public class DictionaryUpdate {
 	log.info("Target sentences contain {} distinct words", targetWords.size());
 	log.info("Source dictionary has {} entries", sourceDictionaryWords.size());
 	log.info("{} target words are not in the dictionary", newWords.size());
-	newWords.stream().sorted().forEachOrdered(System.out::println);
+	newWords.stream().sorted().forEachOrdered(newWord -> log.info("\tnew word : {}", newWord));
 	List<String> newDictionaryWords = combinedDictionaryWords.stream().sorted().collect(Collectors.toList());
 	String targetDictionaryFilename = props.getProperty("dictionary.update.target");
 	try {

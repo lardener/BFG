@@ -41,14 +41,13 @@ import org.apache.lucene.store.FSDirectory;
 public class SearchFiles {
 
     /**
-     * This demonstrates a typical paging search scenario, where the search
-     * engine presents pages of size n to the user. The user can then go to the
-     * next page if interested in the next hits.
+     * This demonstrates a typical paging search scenario, where the search engine
+     * presents pages of size n to the user. The user can then go to the next page
+     * if interested in the next hits.
      *
-     * When the query is executed for the first time, then only enough results
-     * are collected to fill 5 result pages. If the user wants to page beyond
-     * this limit, then the query is executed another time and all hits are
-     * collected.
+     * When the query is executed for the first time, then only enough results are
+     * collected to fill 5 result pages. If the user wants to page beyond this
+     * limit, then the query is executed another time and all hits are collected.
      *
      */
     public static void doPagingSearch(BufferedReader in, IndexSearcher searcher, Query query, int hitsPerPage,
@@ -58,11 +57,11 @@ public class SearchFiles {
 	TopDocs results = searcher.search(query, 5 * hitsPerPage);
 	ScoreDoc[] hits = results.scoreDocs;
 
-	int numTotalHits = results.totalHits;
+	long numTotalHits = results.totalHits.value;
 	System.out.println(numTotalHits + " total matching documents");
 
-	int start = 0;
-	int end = Math.min(numTotalHits, hitsPerPage);
+	long start = 0;
+	long end = Math.min(numTotalHits, hitsPerPage);
 
 	while (true) {
 	    if (end > hits.length) {
@@ -74,18 +73,18 @@ public class SearchFiles {
 		    break;
 		}
 
-		hits = searcher.search(query, numTotalHits).scoreDocs;
+		hits = searcher.search(query, (int) numTotalHits).scoreDocs;
 	    }
 
 	    end = Math.min(hits.length, start + hitsPerPage);
 
-	    for (int i = start; i < end; i++) {
+	    for (long i = start; i < end; i++) {
 		if (raw) { // output raw format
-		    System.out.println("doc=" + hits[i].doc + " score=" + hits[i].score);
+		    System.out.println("doc=" + hits[(int) i].doc + " score=" + hits[(int) i].score);
 		    continue;
 		}
 
-		Document doc = searcher.doc(hits[i].doc);
+		Document doc = searcher.doc(hits[(int) i].doc);
 		String path = doc.get("path");
 		if (path != null) {
 		    System.out.println((i + 1) + ". " + path);

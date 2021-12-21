@@ -79,11 +79,7 @@ public class PhraseEvaluator implements Evaluator {
 	    }
 	    log.debug(query.toString());
 	    TopDocs results = searcher.search(query, 5);
-	    if (ScoringCriteria.BEST_SCORE.equals(scoringCriteria)) {
-		score = results.getMaxScore();
-	    } else {
-		score = results.totalHits;
-	    }
+	    score = getScore(results, scoringCriteria);
 	} catch (IOException e) {
 	    log.error("Could not read index {}", str, e);
 	    throw new RuntimeException(e);

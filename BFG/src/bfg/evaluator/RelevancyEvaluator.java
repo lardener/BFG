@@ -67,11 +67,7 @@ public class RelevancyEvaluator implements Evaluator {
 	try {
 	    Query query = parser.parse(str);
 	    TopDocs results = searcher.search(query, 5);
-	    if (ScoringCriteria.BEST_SCORE.equals(scoringCriteria)) {
-		score = results.getMaxScore();
-	    } else {
-		score = results.totalHits;
-	    }
+	    score = getScore(results, scoringCriteria);
 	} catch (ParseException e) {
 	    log.error("Could not parse {}", str, e);
 	    throw new RuntimeException(e);
