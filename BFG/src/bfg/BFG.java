@@ -3,6 +3,7 @@ package bfg;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -138,7 +139,7 @@ public class BFG {
     }
 
     private boolean reachedFitness(List<MutationStep> generationList, double exitFitnessValue, int exitFitnessCount) {
-	return generationList.parallelStream().mapToDouble(MutationStep::getFitnessScore)
+	return generationList.parallelStream().mapToDouble(MutationStep::getConvergingToFitness)
 		.filter(d -> d >= exitFitnessValue).count() >= exitFitnessCount;
     }
 

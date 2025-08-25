@@ -10,7 +10,7 @@ public class TopFitnessReaper implements Reaper {
     private class FitnessScoreComparator implements Comparator<MutationStep> {
 	@Override
 	public int compare(MutationStep o1, MutationStep o2) {
-	    return -Double.compare(o1.getFitnessScore(), o2.getFitnessScore());
+	    return -Double.compare(o1.getConvergingToFitness(), o2.getConvergingToFitness());
 	}
     }
 

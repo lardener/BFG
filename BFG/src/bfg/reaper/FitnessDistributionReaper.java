@@ -65,7 +65,7 @@ public class FitnessDistributionReaper implements Reaper {
     private Map<Double, List<MutationStep>> createBuckets(List<MutationStep> source) {
 	Map<Double, List<MutationStep>> buckets = new HashMap<>();
 	for (MutationStep step : source) {
-	    Double fitnessScore = step.getFitnessScore();
+	    Double fitnessScore = step.getConvergingToFitness();
 	    List<MutationStep> bucketList = buckets.get(fitnessScore);
 	    if (bucketList == null) {
 		bucketList = new ArrayList<>();

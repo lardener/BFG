@@ -47,16 +47,16 @@ public class RunSummary {
 	    log.debug("Generation {} size {}", generation, gen.size());
 	    int rank = 1;
 	    int genSize = gen.size();
-	    int numFullFitness = (int) gen.parallelStream().mapToDouble(MutationStep::getFitnessScore)
+	    int numFullFitness = (int) gen.parallelStream().mapToDouble(MutationStep::getConvergingToFitness)
 		    .filter(d -> d >= fullFitnessValue).count();
 	    for (MutationStep step : gen) {
 		SummaryRecord rec = new SummaryRecord();
 		rec.setGeneration(generation);
 		rec.setRank(rank);
-		rec.setFitnessScore(step.getFitnessScore());
+		rec.setFitnessScore(step.getConvergingToFitness());
 		rec.setText(step.getChildString());
 		rec.setParentText(step.getParentString());
-		rec.setTargetText(step.getConvergingTo());
+		rec.setTargetText(step.getConvergingToString());
 		rec.setNumberInGeneration(genSize);
 		rec.setNumberFullFitness(numFullFitness);
 		rec.setFullFitnessScore(fullFitnessValue);

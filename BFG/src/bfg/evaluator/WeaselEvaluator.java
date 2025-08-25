@@ -45,11 +45,7 @@ public class WeaselEvaluator implements Evaluator {
 	    targetScores.add(new TargetScore(t));
 	}
 	targetScores.parallelStream().forEach(ts -> ts.score = scorer.similarity(ts.target, toEvaluate));
-	Optional<TargetScore> bestTargetScoreOpt = targetScores.parallelStream()
-		.max((a, b) -> Double.compare(a.score, b.score));
-	TargetScore bestTargetScore = bestTargetScoreOpt.orElseThrow(IllegalStateException::new);
-	step.setFitnessScore(bestTargetScore.score);
-	step.setConvergingTo(bestTargetScore.target);
+	targetScores.stream().sequential().forEach(ts -> step.setFitnessScore(ts.target, ts.score));
     }
 
     @Override

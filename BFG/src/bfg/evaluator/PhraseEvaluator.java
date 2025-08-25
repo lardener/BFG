@@ -41,7 +41,7 @@ public class PhraseEvaluator implements Evaluator {
     }
 
     private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
-	step.setFitnessScore(evaluate(step.getChildString(), searcher));
+	step.setFitnessScore("", evaluate(step.getChildString(), searcher));
 	return step;
     }
 

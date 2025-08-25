@@ -23,7 +23,7 @@ public class StatCollector {
 
     public void logStatisticsParallel(List<MutationStep> generation) {
 	DoubleSummaryStatistics stats = generation.parallelStream()
-		.collect(Collectors.summarizingDouble(MutationStep::getFitnessScore));
+		.collect(Collectors.summarizingDouble(MutationStep::getConvergingToFitness));
 	log.info("Total elements: {}; Fitness stats: [{}, {}, {}]", stats.getCount(), stats.getMin(),
 		stats.getAverage(), stats.getMax());
 	double maxVal = stats.getMax();
@@ -31,7 +31,7 @@ public class StatCollector {
 	MutationStep maxElem = null;
 	MutationStep minElem = null;
 	for (MutationStep element : generation) {
-	    double thisScore = element.getFitnessScore();
+	    double thisScore = element.getConvergingToFitness();
 	    if (equivalent(maxVal, thisScore, 0.001)) {
 		maxElem = element;
 	    } else if (equivalent(minVal, thisScore, 0.001)) {
@@ -40,8 +40,8 @@ public class StatCollector {
 	}
 	minElem = MoreObjects.firstNonNull(minElem, new MutationStep());
 	maxElem = MoreObjects.firstNonNull(maxElem, new MutationStep());
-	log.info("Lowest fitness : {} ==> {}", minElem.getChildString(), minElem.getConvergingTo());
-	log.info("Highest fitness: {} ==> {}", maxElem.getChildString(), maxElem.getConvergingTo());
+	log.info("Lowest fitness : {} ==> {}", minElem.getChildString(), minElem.getConvergingToString());
+	log.info("Highest fitness: {} ==> {}", maxElem.getChildString(), maxElem.getConvergingToString());
     }
 
     public void logStatisticsSerial(List<MutationStep> generation) {
@@ -52,7 +52,7 @@ public class StatCollector {
 	double fitnessAvg;
 
 	for (MutationStep step : generation) {
-	    double currentFitness = step.getFitnessScore();
+	    double currentFitness = step.getConvergingToFitness();
 	    highFitness = Double.max(currentFitness, highFitness);
 	    lowFitness = Double.min(currentFitness, lowFitness);
 	    fitnessSum += currentFitness;

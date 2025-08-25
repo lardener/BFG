@@ -48,7 +48,7 @@ public class MultiPhraseEvaluator implements Evaluator {
     }
 
     private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
-	step.setFitnessScore(evaluate_multiphrase(step.getChildString(), searcher));
+	step.setFitnessScore("", evaluate_multiphrase(step.getChildString(), searcher));
 	return step;
     }
 

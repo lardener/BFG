@@ -38,7 +38,7 @@ public class RelevancyEvaluator implements Evaluator {
     }
 
     private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
-	step.setFitnessScore(evaluate(step.getChildString(), searcher));
+	step.setFitnessScore("", evaluate(step.getChildString(), searcher));
 	return step;
     }
 
@@ -83,7 +83,7 @@ public class RelevancyEvaluator implements Evaluator {
 
     private void printHead(MutationStep[] generation) {
 	for (int i = 0; i < Math.min(generation.length, 10); i++) {
-	    log.trace("Fitness score {}", generation[i].getFitnessScore());
+	    log.trace("Fitness score {}", generation[i].getConvergingToFitness());
 	}
     }
 

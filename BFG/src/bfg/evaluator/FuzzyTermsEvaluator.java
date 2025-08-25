@@ -68,7 +68,7 @@ public class FuzzyTermsEvaluator implements Evaluator {
 	    log.error("Unable to evaluate {}", childString, e);
 	    evalScore = 0.0;
 	}
-	step.setFitnessScore(evalScore);
+	step.setFitnessScore("", evalScore);
 	return step;
     }
 

@@ -46,7 +46,7 @@ public class TermAutomatonEvaluator implements Evaluator {
     }
 
     private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
-	step.setFitnessScore(evaluate_termAutomaton(step.getChildString(), searcher));
+	step.setFitnessScore("", evaluate_termAutomaton(step.getChildString(), searcher));
 	return step;
     }
 
