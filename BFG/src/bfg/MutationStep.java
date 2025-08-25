@@ -45,7 +45,7 @@ public class MutationStep {
 	public String getConvergingToString() {
 		 return fitnessScores.entrySet().stream().max(
 				Map.Entry.comparingByValue(Double::compare)
-				).get().getKey();
+				).orElse(Map.entry("", Double.valueOf(0.0d))).getKey();
 	}
 	
 	public double getConvergingToFitness() {
