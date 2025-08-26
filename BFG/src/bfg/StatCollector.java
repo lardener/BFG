@@ -1,7 +1,9 @@
 package bfg;
 
 import java.util.DoubleSummaryStatistics;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -18,12 +20,12 @@ public class StatCollector {
     }
 
     public void logStatistics(List<MutationStep> generation) {
-	logStatisticsParallel(generation);
+	logStatisticsSerial(generation);
     }
 
     public void logStatisticsParallel(List<MutationStep> generation) {
 	DoubleSummaryStatistics stats = generation.parallelStream()
-		.collect(Collectors.summarizingDouble(MutationStep::getConvergingToFitness));
+		.collect(Collectors.summarizingDouble(MutationStep::getSurvivalTargetFitness));
 	log.info("Total elements: {}; Fitness stats: [{}, {}, {}]", stats.getCount(), stats.getMin(),
 		stats.getAverage(), stats.getMax());
 	double maxVal = stats.getMax();
@@ -50,14 +52,17 @@ public class StatCollector {
 	double lowFitness = Double.MAX_VALUE;
 	double fitnessSum = 0.0;
 	double fitnessAvg;
+	Set<String> targets = new HashSet<>();
 
 	for (MutationStep step : generation) {
-	    double currentFitness = step.getConvergingToFitness();
+	    double currentFitness = step.getSurvivalTargetFitness();
 	    highFitness = Double.max(currentFitness, highFitness);
 	    lowFitness = Double.min(currentFitness, lowFitness);
 	    fitnessSum += currentFitness;
+	    targets.add(step.getSurvivalTarget());
 	}
 	fitnessAvg = fitnessSum / total;
-	log.info("Total elements: {}; Fitness stats: [{}, {}, {}]", total, lowFitness, fitnessAvg, highFitness);
+	targets.stream().forEach(target -> log.debug("Survival target: {}", target));
+	log.info("Total elements: {}; Survival Targets: {}; Fitness stats: [{}, {}, {}]", total, targets.size(), lowFitness, fitnessAvg, highFitness);
     }
 }

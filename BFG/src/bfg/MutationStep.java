@@ -3,10 +3,13 @@ package bfg;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.common.base.MoreObjects;
+
 public class MutationStep {
 	private String childString;
 	private Map<String, Double> fitnessScores = new TreeMap<>();
 	private String parentString;
+	private String survivalTarget;
 
     public MutationStep() {
 
@@ -49,5 +52,18 @@ public class MutationStep {
 	public double getConvergingToFitness() {
 		return getFitnessScore(getConvergingToString());
 	}
+
+	public String getSurvivalTarget() {
+		return MoreObjects.firstNonNull(survivalTarget, getConvergingToString());
+	}
+
+	public void setSurvivalTarget(String survivalTarget) {
+		this.survivalTarget = survivalTarget;
+	}
+	
+	public double getSurvivalTargetFitness() {
+		return getFitnessScore(getSurvivalTarget());
+	}
+	
 
 }
