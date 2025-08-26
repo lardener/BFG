@@ -9,32 +9,32 @@ import bfg.MutationStep;
 import bfg.RandomSelector;
 
 public class RandomReaper implements Reaper {
-    private static final Logger log = LoggerFactory.getLogger(RandomReaper.class);
+	private static final Logger log = LoggerFactory.getLogger(RandomReaper.class);
 
-    private int maxSize;
+	private int maxSize;
 
-    public RandomReaper(int maxSize) {
-	this.maxSize = maxSize;
-    }
-
-    @Override
-    public List<MutationStep> reap(List<MutationStep> generationList) {
-	List<MutationStep> survivors;
-	if (generationList.size() <= maxSize) {
-	    survivors = generationList;
-	} else {
-	    survivors = getRandom(maxSize, generationList);
+	public RandomReaper(int maxSize) {
+		this.maxSize = maxSize;
 	}
-	return survivors;
-    }
 
-    private List<MutationStep> getRandom(int max, List<MutationStep> source) {
-	return new RandomSelector<MutationStep>().select(max, source);
-    }
+	@Override
+	public List<MutationStep> reap(List<MutationStep> generationList) {
+		List<MutationStep> survivors;
+		if (generationList.size() <= maxSize) {
+			survivors = generationList;
+		} else {
+			survivors = getRandom(maxSize, generationList);
+		}
+		return survivors;
+	}
 
-    @Override
-    public String description() {
-	return "Random reaper keeping " + maxSize + " elements";
-    }
+	private List<MutationStep> getRandom(int max, List<MutationStep> source) {
+		return new RandomSelector<MutationStep>().select(max, source);
+	}
+
+	@Override
+	public String description() {
+		return "Random reaper keeping " + maxSize + " elements";
+	}
 
 }

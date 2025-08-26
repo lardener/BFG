@@ -7,31 +7,31 @@ import java.util.stream.Collectors;
 import bfg.MutationStep;
 
 public class TopFitnessReaper implements Reaper {
-    private class FitnessScoreComparator implements Comparator<MutationStep> {
-	@Override
-	public int compare(MutationStep o1, MutationStep o2) {
-	    return -Double.compare(o1.getConvergingToFitness(), o2.getConvergingToFitness());
+	private class FitnessScoreComparator implements Comparator<MutationStep> {
+		@Override
+		public int compare(MutationStep o1, MutationStep o2) {
+			return -Double.compare(o1.getConvergingToFitness(), o2.getConvergingToFitness());
+		}
 	}
-    }
 
-    private final int maxSize;
+	private final int maxSize;
 
-    public TopFitnessReaper(int maxSize) {
-	this.maxSize = maxSize;
-    }
+	public TopFitnessReaper(int maxSize) {
+		this.maxSize = maxSize;
+	}
 
-    @Override
-    public List<MutationStep> reap(List<MutationStep> steps) {
-	return reapAsStream(steps);
-    }
+	@Override
+	public List<MutationStep> reap(List<MutationStep> steps) {
+		return reapAsStream(steps);
+	}
 
-    private List<MutationStep> reapAsStream(List<MutationStep> steps) {
-	return steps.parallelStream().sorted(new FitnessScoreComparator()).limit(maxSize).collect(Collectors.toList());
-    }
+	private List<MutationStep> reapAsStream(List<MutationStep> steps) {
+		return steps.parallelStream().sorted(new FitnessScoreComparator()).limit(maxSize).collect(Collectors.toList());
+	}
 
-    @Override
-    public String description() {
-	return "Top scores reaper keeping " + maxSize + " elements";
-    }
+	@Override
+	public String description() {
+		return "Top scores reaper keeping " + maxSize + " elements";
+	}
 
 }

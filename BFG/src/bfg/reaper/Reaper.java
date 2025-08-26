@@ -7,6 +7,6 @@ import bfg.MutationStep;
 
 public interface Reaper extends Describable {
 
-    public List<MutationStep> reap(List<MutationStep> generationList);
+	public List<MutationStep> reap(List<MutationStep> generationList);
 
 }

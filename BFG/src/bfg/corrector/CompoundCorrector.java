@@ -22,12 +22,10 @@ public class CompoundCorrector implements Corrector {
 	private final List<CompoundCorrectorStep> stepsList;
 
 	public CompoundCorrector(CompoundCorrectorStep step, CompoundCorrectorStep... steps) {
-		stepsList = ImmutableList.<CompoundCorrectorStep> builder()
-				.add(step).addAll(Arrays.asList(steps))
-				.build()
-		;
-		correctorSampler = new DiscreteProbabilityCollectionSampler<Corrector>(new JDKRandomWrapper(new Random()), 
-				stepsList.stream().collect(Collectors.toMap(CompoundCorrectorStep::getCorrector, CompoundCorrectorStep::getWeight)));
+		stepsList = ImmutableList.<CompoundCorrectorStep>builder().add(step).addAll(Arrays.asList(steps)).build();
+		correctorSampler = new DiscreteProbabilityCollectionSampler<Corrector>(new JDKRandomWrapper(new Random()),
+				stepsList.stream().collect(
+						Collectors.toMap(CompoundCorrectorStep::getCorrector, CompoundCorrectorStep::getWeight)));
 	}
 
 	@Override

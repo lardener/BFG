@@ -20,7 +20,7 @@ import bfg.misc.StringSanitizer;
 
 public class BucketReaper implements Reaper {
 	private static final Logger log = LoggerFactory.getLogger(BucketReaper.class);
-	
+
 	private Map<String, Integer> bucketCapacities = new HashMap<>();
 	int survivorMax;
 
@@ -35,16 +35,17 @@ public class BucketReaper implements Reaper {
 	}
 
 	@Override
-    public String description() {
-	return "Bucket reaper with " + bucketCapacities.size() + " targets";
-    }
+	public String description() {
+		return "Bucket reaper with " + bucketCapacities.size() + " targets";
+	}
 
 	@Override
 	public List<MutationStep> reap(List<MutationStep> generationList) {
-		//Create queues for each target. Each queue is priority by fitness score to that target.
+		// Create queues for each target. Each queue is priority by fitness score to
+		// that target.
 		class MutationStepTargetScoreComparator implements Comparator<MutationStep> {
 			private final String target;
-			
+
 			public MutationStepTargetScoreComparator(String target) {
 				super();
 				this.target = target;
@@ -57,18 +58,21 @@ public class BucketReaper implements Reaper {
 		}
 		Map<String, Queue<MutationStep>> scoreQueues = new ConcurrentHashMap<>();
 		bucketCapacities.keySet().stream().forEach(targetSentence -> {
-			scoreQueues.put(targetSentence, new PriorityBlockingQueue<>(10, new MutationStepTargetScoreComparator(targetSentence)));
+			scoreQueues.put(targetSentence,
+					new PriorityBlockingQueue<>(10, new MutationStepTargetScoreComparator(targetSentence)));
 		});
-		//Push each MutationStep into all the queues
+		// Push each MutationStep into all the queues
 		generationList.parallelStream().forEach(mutationStep -> {
 			bucketCapacities.keySet().stream().forEach(targetSentence -> {
 				scoreQueues.get(targetSentence).add(mutationStep);
 			});
 		});
-		//Create survivor set
-		//Survivor selection will take the highest relative fitness MutationStep as long as there are slots to be taken for that target.
-		//Relative fitness is fitness of a MutationStep against the target of the queue.
-		//Survivor selection needs to look at all queues so it must be single threaded.
+		// Create survivor set
+		// Survivor selection will take the highest relative fitness MutationStep as
+		// long as there are slots to be taken for that target.
+		// Relative fitness is fitness of a MutationStep against the target of the
+		// queue.
+		// Survivor selection needs to look at all queues so it must be single threaded.
 		Set<MutationStep> survivors = new HashSet<>();
 		Map<String, Integer> runningCapacity = new HashMap<>(bucketCapacities);
 		boolean survivorSpaceFilled = false;
@@ -79,10 +83,13 @@ public class BucketReaper implements Reaper {
 				// successfully added because it was not already a survivor
 				reduceCapacity(runningCapacity, targetString);
 				survivorCandidate.setSurvivalTarget(targetString);
-			}		
-			if (scoreQueues.isEmpty()) survivorSpaceFilled = true;
-			if (runningCapacity.isEmpty()) survivorSpaceFilled = true;
-			if (survivors.size() >= survivorMax) survivorSpaceFilled = true;
+			}
+			if (scoreQueues.isEmpty())
+				survivorSpaceFilled = true;
+			if (runningCapacity.isEmpty())
+				survivorSpaceFilled = true;
+			if (survivors.size() >= survivorMax)
+				survivorSpaceFilled = true;
 		}
 		return new ArrayList<>(survivors);
 	}
@@ -102,15 +109,16 @@ public class BucketReaper implements Reaper {
 	private void reduceCapacity(Map<String, Integer> runningCapacity, String targetString) {
 		Integer currentCapacity = runningCapacity.get(targetString);
 		if (currentCapacity != null) {
-		  if (currentCapacity > 1) {
-			  runningCapacity.put(targetString, currentCapacity - 1);
-		  } else {
-			  runningCapacity.remove(targetString);
-		  }
+			if (currentCapacity > 1) {
+				runningCapacity.put(targetString, currentCapacity - 1);
+			} else {
+				runningCapacity.remove(targetString);
+			}
 		}
 	}
 
-	private String findHighestRelativeFitnessTarget(Map<String, Queue<MutationStep>> scoreQueues, Set<String> targetsWithCapacity) {
+	private String findHighestRelativeFitnessTarget(Map<String, Queue<MutationStep>> scoreQueues,
+			Set<String> targetsWithCapacity) {
 		double highFitnessValue = 0.0d;
 		String highFitnessTarget = "";
 		Iterator<String> targetIterator = targetsWithCapacity.iterator();
@@ -118,7 +126,7 @@ public class BucketReaper implements Reaper {
 			String target = targetIterator.next();
 			MutationStep thisStep;
 			try {
-			  thisStep = scoreQueues.get(target).peek();
+				thisStep = scoreQueues.get(target).peek();
 			} catch (NullPointerException ex) {
 				String message = "No capacity for target ::" + target + "::";
 				log.debug(message, ex);

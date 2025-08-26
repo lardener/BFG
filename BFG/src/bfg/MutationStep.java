@@ -11,9 +11,9 @@ public class MutationStep {
 	private String parentString;
 	private String survivalTarget;
 
-    public MutationStep() {
+	public MutationStep() {
 
-    }
+	}
 
 	public MutationStep(MutationStep step) {
 		parentString = step.getChildString();
@@ -44,11 +44,10 @@ public class MutationStep {
 	}
 
 	public String getConvergingToString() {
-		 return fitnessScores.entrySet().stream().max(
-				Map.Entry.comparingByValue(Double::compare)
-				).orElse(Map.entry("", Double.valueOf(0.0d))).getKey();
+		return fitnessScores.entrySet().stream().max(Map.Entry.comparingByValue(Double::compare))
+				.orElse(Map.entry("", Double.valueOf(0.0d))).getKey();
 	}
-	
+
 	public double getConvergingToFitness() {
 		return getFitnessScore(getConvergingToString());
 	}
@@ -60,10 +59,9 @@ public class MutationStep {
 	public void setSurvivalTarget(String survivalTarget) {
 		this.survivalTarget = survivalTarget;
 	}
-	
+
 	public double getSurvivalTargetFitness() {
 		return getFitnessScore(getSurvivalTarget());
 	}
-	
 
 }

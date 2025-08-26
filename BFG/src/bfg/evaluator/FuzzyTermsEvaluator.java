@@ -33,149 +33,149 @@ import com.google.common.cache.CacheBuilder;
 import bfg.MutationStep;
 
 public class FuzzyTermsEvaluator implements Evaluator {
-    private static final Logger log = LoggerFactory.getLogger(FuzzyTermsEvaluator.class);
-    private static final String word_regex = "([a-zA-Z0-9\\-']+)";
+	private static final Logger log = LoggerFactory.getLogger(FuzzyTermsEvaluator.class);
+	private static final String word_regex = "([a-zA-Z0-9\\-']+)";
 
-    private int maxDistance;
-    private Path ndxDir;
-    private ScoringCriteria scoringCriteria;
+	private int maxDistance;
+	private Path ndxDir;
+	private ScoringCriteria scoringCriteria;
 
-    private Cache<String, Double> scoreCache = CacheBuilder.newBuilder().maximumSize(10000).recordStats().build();
+	private Cache<String, Double> scoreCache = CacheBuilder.newBuilder().maximumSize(10000).recordStats().build();
 
-    public FuzzyTermsEvaluator(ScoringCriteria scoringCriteria, Path ndxDir, int maxDistance) {
-	log.debug("Creating");
-	this.ndxDir = ndxDir;
-	this.maxDistance = maxDistance;
-	this.scoringCriteria = scoringCriteria;
-    }
+	public FuzzyTermsEvaluator(ScoringCriteria scoringCriteria, Path ndxDir, int maxDistance) {
+		log.debug("Creating");
+		this.ndxDir = ndxDir;
+		this.maxDistance = maxDistance;
+		this.scoringCriteria = scoringCriteria;
+	}
 
-    @Override
-    public List<MutationStep> evaluate(List<MutationStep> generationList) {
-	return Arrays.asList(evaluate(generationList.toArray(new MutationStep[0])));
-    }
+	@Override
+	public List<MutationStep> evaluate(List<MutationStep> generationList) {
+		return Arrays.asList(evaluate(generationList.toArray(new MutationStep[0])));
+	}
 
-    private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
-	String childString = step.getChildString();
-	double evalScore;
-	try {
-	    evalScore = scoreCache.get(childString, new Callable<Double>() {
-		@Override
-		public Double call() throws Exception {
-		    return evaluate_parsed(childString, searcher);
+	private MutationStep evaluate(MutationStep step, IndexSearcher searcher) {
+		String childString = step.getChildString();
+		double evalScore;
+		try {
+			evalScore = scoreCache.get(childString, new Callable<Double>() {
+				@Override
+				public Double call() throws Exception {
+					return evaluate_parsed(childString, searcher);
+				}
+			});
+		} catch (ExecutionException e) {
+			log.error("Unable to evaluate {}", childString, e);
+			evalScore = 0.0;
 		}
-	    });
-	} catch (ExecutionException e) {
-	    log.error("Unable to evaluate {}", childString, e);
-	    evalScore = 0.0;
+		step.setFitnessScore("", evalScore);
+		return step;
 	}
-	step.setFitnessScore("", evalScore);
-	return step;
-    }
 
-    public MutationStep[] evaluate(MutationStep[] generation) {
-	long start = System.currentTimeMillis();
-	scoreCache.cleanUp();
-	try (IndexReader reader = DirectoryReader.open(FSDirectory.open(ndxDir));) {
-	    // try (IndexReader reader = DirectoryReader.open(new
-	    // MMapDirectory(ndxDir));) {
-	    IndexSearcher searcher = new IndexSearcher(reader);
-	    Arrays.stream(generation).parallel().forEach(x -> evaluate(x, searcher));
-	} catch (IOException e) {
-	    log.error("Unable to apply corrections", e);
+	public MutationStep[] evaluate(MutationStep[] generation) {
+		long start = System.currentTimeMillis();
+		scoreCache.cleanUp();
+		try (IndexReader reader = DirectoryReader.open(FSDirectory.open(ndxDir));) {
+			// try (IndexReader reader = DirectoryReader.open(new
+			// MMapDirectory(ndxDir));) {
+			IndexSearcher searcher = new IndexSearcher(reader);
+			Arrays.stream(generation).parallel().forEach(x -> evaluate(x, searcher));
+		} catch (IOException e) {
+			log.error("Unable to apply corrections", e);
+		}
+		long stop = System.currentTimeMillis();
+		log.debug("Evaluation time: {}", stop - start);
+		return generation;
 	}
-	long stop = System.currentTimeMillis();
-	log.debug("Evaluation time: {}", stop - start);
-	return generation;
-    }
 
-    private double evaluate_multiphrase(String str, IndexSearcher searcher) {
-	double score = 0.0;
+	private double evaluate_multiphrase(String str, IndexSearcher searcher) {
+		double score = 0.0;
 
-	Pattern p = Pattern.compile(word_regex);
-	Matcher m = p.matcher(str.toLowerCase());
-	MultiPhraseQuery.Builder queryBuilder = new MultiPhraseQuery.Builder();
-	while (m.find()) {
-	    String word = m.group();
-	    queryBuilder.add(new Term[] { new Term("contents", word), new Term("contents", word + "s") });
-	    FuzzyQuery q = new FuzzyQuery(new Term("contents", word + "~" + maxDistance));
+		Pattern p = Pattern.compile(word_regex);
+		Matcher m = p.matcher(str.toLowerCase());
+		MultiPhraseQuery.Builder queryBuilder = new MultiPhraseQuery.Builder();
+		while (m.find()) {
+			String word = m.group();
+			queryBuilder.add(new Term[] { new Term("contents", word), new Term("contents", word + "s") });
+			FuzzyQuery q = new FuzzyQuery(new Term("contents", word + "~" + maxDistance));
 
+		}
+		try {
+			// Query query = new SpanNearQuery(queryTerms.toArray(new
+			// SpanMultiTermQueryWrapper[0]), 0, true);
+			Query query = queryBuilder.build();
+			if (log.isTraceEnabled()) {
+				log.trace(query.rewrite(searcher.getIndexReader()).toString());
+			}
+			TopDocs results = searcher.search(query, 5);
+			score = getScore(results, scoringCriteria);
+		} catch (IOException e) {
+			log.error("Could not read index {}", str, e);
+			throw new RuntimeException(e);
+		}
+		return score;
 	}
-	try {
-	    // Query query = new SpanNearQuery(queryTerms.toArray(new
-	    // SpanMultiTermQueryWrapper[0]), 0, true);
-	    Query query = queryBuilder.build();
-	    if (log.isTraceEnabled()) {
-		log.trace(query.rewrite(searcher.getIndexReader()).toString());
-	    }
-	    TopDocs results = searcher.search(query, 5);
-	    score = getScore(results, scoringCriteria);
-	} catch (IOException e) {
-	    log.error("Could not read index {}", str, e);
-	    throw new RuntimeException(e);
-	}
-	return score;
-    }
 
-    private double evaluate_parsed(String str, IndexSearcher searcher) {
-	double score = 0.0;
+	private double evaluate_parsed(String str, IndexSearcher searcher) {
+		double score = 0.0;
 
-	Pattern p = Pattern.compile(word_regex);
-	Matcher m = p.matcher(str.toLowerCase());
-	StringBuffer querySB = new StringBuffer();
-	while (m.find()) {
-	    String word = m.group();
-	    querySB.append(word).append('~').append(maxDistance).append(' ');
+		Pattern p = Pattern.compile(word_regex);
+		Matcher m = p.matcher(str.toLowerCase());
+		StringBuffer querySB = new StringBuffer();
+		while (m.find()) {
+			String word = m.group();
+			querySB.append(word).append('~').append(maxDistance).append(' ');
+		}
+		String queryStr = querySB.toString().trim();
+		QueryParser parser = new QueryParser("contents", new StandardAnalyzer());
+		try {
+			Query query = parser.parse(queryStr);
+			if (log.isTraceEnabled()) {
+				log.trace(query.toString());
+			}
+			TopDocs results = searcher.search(query, 5);
+			score = getScore(results, scoringCriteria);
+		} catch (ParseException e) {
+			log.error("Could not parse {}", str, e);
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			log.error("Could not read index {}", str, e);
+			throw new RuntimeException(e);
+		}
+		return score;
 	}
-	String queryStr = querySB.toString().trim();
-	QueryParser parser = new QueryParser("contents", new StandardAnalyzer());
-	try {
-	    Query query = parser.parse(queryStr);
-	    if (log.isTraceEnabled()) {
-		log.trace(query.toString());
-	    }
-	    TopDocs results = searcher.search(query, 5);
-	    score = getScore(results, scoringCriteria);
-	} catch (ParseException e) {
-	    log.error("Could not parse {}", str, e);
-	    throw new RuntimeException(e);
-	} catch (IOException e) {
-	    log.error("Could not read index {}", str, e);
-	    throw new RuntimeException(e);
-	}
-	return score;
-    }
 
-    private double evaluate_span(String str, IndexSearcher searcher) {
-	double score = 0.0;
+	private double evaluate_span(String str, IndexSearcher searcher) {
+		double score = 0.0;
 
-	Pattern p = Pattern.compile(word_regex);
-	Matcher m = p.matcher(str.toLowerCase());
-	ArrayList<SpanMultiTermQueryWrapper<FuzzyQuery>> queryTerms = new ArrayList<>();
-	while (m.find()) {
-	    String word = m.group();
-	    queryTerms.add(
-		    new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term("contents", word + "~" + maxDistance))));
+		Pattern p = Pattern.compile(word_regex);
+		Matcher m = p.matcher(str.toLowerCase());
+		ArrayList<SpanMultiTermQueryWrapper<FuzzyQuery>> queryTerms = new ArrayList<>();
+		while (m.find()) {
+			String word = m.group();
+			queryTerms.add(
+					new SpanMultiTermQueryWrapper<>(new FuzzyQuery(new Term("contents", word + "~" + maxDistance))));
+		}
+		try {
+			// Query query = new SpanNearQuery(queryTerms.toArray(new
+			// SpanMultiTermQueryWrapper[0]), 0, true);
+			Query query = new SpanOrQuery(queryTerms.toArray(new SpanMultiTermQueryWrapper[0]));
+			if (log.isTraceEnabled()) {
+				log.trace(query.rewrite(searcher.getIndexReader()).toString());
+			}
+			TopDocs results = searcher.search(query, 5);
+			score = getScore(results, scoringCriteria);
+		} catch (IOException e) {
+			log.error("Could not read index {}", str, e);
+			throw new RuntimeException(e);
+		}
+		return score;
 	}
-	try {
-	    // Query query = new SpanNearQuery(queryTerms.toArray(new
-	    // SpanMultiTermQueryWrapper[0]), 0, true);
-	    Query query = new SpanOrQuery(queryTerms.toArray(new SpanMultiTermQueryWrapper[0]));
-	    if (log.isTraceEnabled()) {
-		log.trace(query.rewrite(searcher.getIndexReader()).toString());
-	    }
-	    TopDocs results = searcher.search(query, 5);
-	    score = getScore(results, scoringCriteria);
-	} catch (IOException e) {
-	    log.error("Could not read index {}", str, e);
-	    throw new RuntimeException(e);
-	}
-	return score;
-    }
 
-    @Override
-    public String description() {
-	return "FuzzyTermsEvaluator [maxDistance=" + maxDistance + ", ndxDir=" + ndxDir + ", scoringCriteria="
-		+ scoringCriteria + "]";
-    }
+	@Override
+	public String description() {
+		return "FuzzyTermsEvaluator [maxDistance=" + maxDistance + ", ndxDir=" + ndxDir + ", scoringCriteria="
+				+ scoringCriteria + "]";
+	}
 
 }
