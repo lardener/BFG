@@ -2,21 +2,25 @@ package bfg;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import com.google.common.base.MoreObjects;
 
 public class MutationStep {
+	private final UUID id = UUID.randomUUID();
+	private final UUID parentId;
 	private String childString;
 	private Map<String, Double> fitnessScores = new TreeMap<>();
 	private String parentString;
 	private String survivalTarget;
 
 	public MutationStep() {
-
+		parentId = null;
 	}
 
 	public MutationStep(MutationStep step) {
 		parentString = step.getChildString();
+		parentId = step.getId();
 	}
 
 	public String getChildString() {
@@ -62,6 +66,14 @@ public class MutationStep {
 
 	public double getSurvivalTargetFitness() {
 		return getFitnessScore(getSurvivalTarget());
+	}
+
+	public UUID getId() {
+		return id;
+	}
+
+	public UUID getParentId() {
+		return parentId;
 	}
 
 }

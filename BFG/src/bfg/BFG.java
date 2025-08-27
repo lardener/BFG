@@ -62,6 +62,7 @@ public class BFG {
 		if (generation == 0) {
 			generationList.addAll(loadSeeds(this.props));
 			generationList = evaluator.evaluate(generationList);
+			recorder.write(generation, generationList);
 			log.info("Starting from {} seeds", generationList.size());
 		} else {
 			log.info("Continuing from generation {}", generation);
