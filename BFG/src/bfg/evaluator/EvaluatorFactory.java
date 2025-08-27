@@ -3,14 +3,9 @@ package bfg.evaluator;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import bfg.misc.Utilities;
 
 public class EvaluatorFactory {
-	private static final Logger log = LoggerFactory.getLogger(EvaluatorFactory.class);
-
 	private static final String PROP_TYPENAME = "evaluator";
 
 	private static final String PROP_FT_CRITERIA = "evaluator.fuzzyterms.criteria";

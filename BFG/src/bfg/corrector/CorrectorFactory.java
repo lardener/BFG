@@ -3,12 +3,7 @@ package bfg.corrector;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CorrectorFactory {
-	private static final Logger log = LoggerFactory.getLogger(CorrectorFactory.class);
-
 	private static final String PROP_TYPENAME = "corrector";
 
 	private static final String PROP_SC_DICTIONARY_FILE = "corrector.spellcheck.dictionaryFile";

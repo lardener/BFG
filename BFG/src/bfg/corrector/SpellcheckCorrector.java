@@ -97,8 +97,7 @@ public class SpellcheckCorrector implements Corrector {
 		Pattern p = Pattern.compile(word_regex);
 		Matcher m = p.matcher(str);
 		StringBuffer bufStr = new StringBuffer();
-		boolean flag = false;
-		while ((flag = m.find())) {
+		while (m.find()) {
 			String word = m.group();
 			m.appendReplacement(bufStr, suggest(word, spell));
 		}

@@ -48,8 +48,7 @@ public class BFG {
 	}
 
 	public void run() {
-		// System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism",
-		// "2");
+		// System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism","2");
 		Mutator mutator = MutatorFactory.getInstance(this.props);
 		Replicator replicator = ReplicatorFactory.getInstance(this.props, mutator);
 		Reaper reaper = ReaperFactory.getInstance(this.props);

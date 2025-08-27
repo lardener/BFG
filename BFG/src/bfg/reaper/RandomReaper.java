@@ -2,15 +2,10 @@ package bfg.reaper;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import bfg.MutationStep;
 import bfg.RandomSelector;
 
 public class RandomReaper implements Reaper {
-	private static final Logger log = LoggerFactory.getLogger(RandomReaper.class);
-
 	private int maxSize;
 
 	public RandomReaper(int maxSize) {

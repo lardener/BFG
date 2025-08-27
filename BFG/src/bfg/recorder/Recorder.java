@@ -65,6 +65,7 @@ public class Recorder {
 	}
 
 	private List<MutationStep> loadGeneration(File dfile) {
+		@SuppressWarnings("serial")
 		final Type collectionType = new TypeToken<List<MutationStep>>() {
 		}.getType();
 		try (Reader reader = new FileReader(dfile)) {

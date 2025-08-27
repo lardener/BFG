@@ -2,14 +2,9 @@ package bfg.reaper;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import bfg.misc.Utilities;
 
 public class ReaperFactory {
-	private static final Logger log = LoggerFactory.getLogger(ReaperFactory.class);
-
 	private static final String PROP_TYPE = "reaper";
 
 	private static final String PROP_TF_MAXELEMENTS = "reaper.topfitness.maxelements";
