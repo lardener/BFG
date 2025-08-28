@@ -10,9 +10,9 @@ public class MutationStep {
 	private final UUID id = UUID.randomUUID();
 	private final UUID parentId;
 	private String childString;
-	private Map<String, Double> fitnessScores = new TreeMap<>();
 	private String parentString;
 	private String survivalTarget;
+	private Map<String, Double> fitnessScores = new TreeMap<>();
 
 	public MutationStep() {
 		parentId = null;

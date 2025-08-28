@@ -53,6 +53,7 @@ public class StatCollector {
 		double fitnessSum = 0.0;
 		double fitnessAvg;
 		Set<String> targets = new HashSet<>();
+		Set<MutationStep> diverseSurvivors = new HashSet<>();
 
 		for (MutationStep step : generation) {
 			double currentFitness = step.getSurvivalTargetFitness();
@@ -60,10 +61,17 @@ public class StatCollector {
 			lowFitness = Double.min(currentFitness, lowFitness);
 			fitnessSum += currentFitness;
 			targets.add(step.getSurvivalTarget());
+			if (!step.getConvergingToString().equals(step.getSurvivalTarget())) {
+				diverseSurvivors.add(step);
+			}
 		}
 		fitnessAvg = fitnessSum / total;
 		targets.stream().forEach(target -> log.debug("Survival target: {}", target));
-		log.info("Total elements: {}; Survival Targets: {}; Fitness stats: [{}, {}, {}]", total, targets.size(),
-				lowFitness, fitnessAvg, highFitness);
+		if (!diverseSurvivors.isEmpty())
+			log.warn("###################### DIVERSION #################");
+		log.info("Total elements: {}; Survival Targets: {}; Diverse Survivors {}; Fitness stats: [{}, {}, {}]", total,
+				targets.size(), diverseSurvivors.size(), lowFitness, fitnessAvg, highFitness);
+		if (!diverseSurvivors.isEmpty())
+			log.warn("###################### DIVERSION #################");
 	}
 }

@@ -43,4 +43,17 @@ public class Utilities {
 		} while (value != null);
 		return values;
 	}
+
+	public List<Double> loadDoubleArray(Properties props, String arrayPreamble) {
+		List<Double> values = new ArrayList<>();
+		String value;
+		int valueNdx = 1;
+		do {
+			value = props.getProperty(arrayPreamble + "." + valueNdx++);
+			if (value != null) {
+				values.add(Double.parseDouble(value));
+			}
+		} while (value != null);
+		return values;
+	}
 }

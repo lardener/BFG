@@ -22,14 +22,19 @@ public class BucketReaper implements Reaper {
 	private static final Logger log = LoggerFactory.getLogger(BucketReaper.class);
 
 	private Map<String, Integer> bucketCapacities = new HashMap<>();
-	int survivorMax;
+	private Map<String, Double> minDiversionFitness = new HashMap<>();
+	private int survivorMax;
 
-	public BucketReaper(List<String> targets, List<Integer> capacities, int maxTotalInGeneration) {
+	public BucketReaper(List<String> targets, List<Integer> capacities, List<Double> diversionFitness,
+			int maxTotalInGeneration) {
 		StringSanitizer sanitizer = StringSanitizer.getInstance();
 		Iterator<String> targetsIterator = targets.iterator();
 		Iterator<Integer> capacitiesIterator = capacities.iterator();
+		Iterator<Double> diversionIterator = diversionFitness.iterator();
 		while (targetsIterator.hasNext() && capacitiesIterator.hasNext()) {
-			bucketCapacities.put(sanitizer.sanitize(targetsIterator.next()), capacitiesIterator.next());
+			String sanitizedTarget = sanitizer.sanitize(targetsIterator.next());
+			bucketCapacities.put(sanitizedTarget, capacitiesIterator.next());
+			minDiversionFitness.put(sanitizedTarget, diversionIterator.next());
 		}
 		survivorMax = maxTotalInGeneration;
 	}
@@ -79,17 +84,33 @@ public class BucketReaper implements Reaper {
 		while (!survivorSpaceFilled) {
 			String targetString = findHighestRelativeFitnessTarget(scoreQueues, runningCapacity.keySet());
 			MutationStep survivorCandidate = takeSurvivorCandidate(scoreQueues, targetString);
-			if (survivorCandidate != null && survivors.add(survivorCandidate)) {
-				// successfully added because it was not already a survivor
-				reduceCapacity(runningCapacity, targetString);
-				survivorCandidate.setSurvivalTarget(targetString);
+			if (survivorCandidate != null) {
+				// survivor candidate found
+				if (survivorCandidate.getConvergingToString().equals(targetString) //
+						|| //
+						survivorCandidate.getFitnessScore(targetString) > minDiversionFitness.get(targetString) //
+						|| //
+						true //
+				) {
+					// survivor is converging to target string
+					// or survivor candidate has minimum fitness for diversion to target
+					if (survivors.add(survivorCandidate)) {
+						// successfully added because it was not already a survivor
+						reduceCapacity(runningCapacity, targetString);
+						survivorCandidate.setSurvivalTarget(targetString);
+					}
+				}
 			}
-			if (scoreQueues.isEmpty())
-				survivorSpaceFilled = true;
-			if (runningCapacity.isEmpty())
-				survivorSpaceFilled = true;
-			if (survivors.size() >= survivorMax)
-				survivorSpaceFilled = true;
+			boolean scoreQueuesEmpty = scoreQueues.isEmpty();
+			boolean runningCapacityEmpty = runningCapacity.isEmpty();
+			boolean allGenerationSurvives = survivors.size() >= generationList.size();
+			boolean generationSpaceExceeded = survivors.size() >= survivorMax;
+			log.debug(
+					"Survivor for {} : scoreQueuesEmpty={}, runningCapacityEmpty={}, allGenerationSurvives={}, generationSpaceExceeded={}",
+					targetString, scoreQueuesEmpty, runningCapacityEmpty, allGenerationSurvives,
+					generationSpaceExceeded);
+			survivorSpaceFilled = scoreQueuesEmpty || runningCapacityEmpty || allGenerationSurvives
+					|| generationSpaceExceeded;
 		}
 		return new ArrayList<>(survivors);
 	}
@@ -140,6 +161,7 @@ public class BucketReaper implements Reaper {
 				}
 			}
 		}
+		assert !highFitnessTarget.equals("");
 		return highFitnessTarget;
 	}
 }

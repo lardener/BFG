@@ -7,13 +7,6 @@ import java.util.stream.Collectors;
 import bfg.MutationStep;
 
 public class TopFitnessReaper implements Reaper {
-	private class FitnessScoreComparator implements Comparator<MutationStep> {
-		@Override
-		public int compare(MutationStep o1, MutationStep o2) {
-			return -Double.compare(o1.getConvergingToFitness(), o2.getConvergingToFitness());
-		}
-	}
-
 	private final int maxSize;
 
 	public TopFitnessReaper(int maxSize) {
@@ -26,7 +19,11 @@ public class TopFitnessReaper implements Reaper {
 	}
 
 	private List<MutationStep> reapAsStream(List<MutationStep> steps) {
-		return steps.parallelStream().sorted(new FitnessScoreComparator()).limit(maxSize).collect(Collectors.toList());
+		List<MutationStep> survivors = steps.parallelStream()
+				.sorted(Comparator.comparing(MutationStep::getConvergingToFitness).reversed()).limit(maxSize)
+				.collect(Collectors.toList());
+		survivors.parallelStream().forEach(survivor -> survivor.setSurvivalTarget(survivor.getConvergingToString()));
+		return survivors;
 	}
 
 	@Override
